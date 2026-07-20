@@ -2,21 +2,26 @@ import { renderColorsList } from './common/renderColorsList.js';
 
 export function initProjectColors() {
   const input = document.getElementById('projectColorInput');
+  const nameInput = document.getElementById('projectColorNameInput');
   const button = document.getElementById('addProjectColorBtn');
 
   button.addEventListener('click', () => {
     const color = input.value.trim();
+    const name = nameInput.value.trim();
     if (color) {
-      vscode.postMessage({ command: 'addColor', color, from: 'project' });
+      vscode.postMessage({ command: 'addColor', color, name, from: 'project' });
       input.value = '';
+      nameInput.value = '';
     }
   });
 
-  input.addEventListener('keypress', (e) => {
+  const submitOnEnter = (e) => {
     if (e.key === 'Enter') {
       button.click();
     }
-  });
+  };
+  input.addEventListener('keypress', submitOnEnter);
+  nameInput.addEventListener('keypress', submitOnEnter);
 
   document.addEventListener('stateUpdated', renderProjectColors);
 }

@@ -3,15 +3,16 @@ import { ColorProjectManager } from './ColorProjectManager';
 
 export class ColorPickerViewProvider implements vscode.WebviewViewProvider {
   private _view?: vscode.WebviewView;
-  private manager: ColorProjectManager;
   private currentView: 'saved-colors' | 'projects' | 'project-colors' =
     'saved-colors';
   private _disposables: vscode.Disposable[] = [];
   constructor(
     private readonly extensionUri: vscode.Uri,
-    private readonly globalState: vscode.Memento
+    private readonly manager: ColorProjectManager
   ) {
-    this.manager = new ColorProjectManager(globalState);
+    this._disposables.push(
+      this.manager.onDidChange(() => this.updateWebview())
+    );
     this.initializeManager();
   }
   private async initializeManager(): Promise<void> {
@@ -51,6 +52,7 @@ export class ColorPickerViewProvider implements vscode.WebviewViewProvider {
         case 'addColor':
           const addResult = await this.manager.addColor(
             message.color,
+            message.name,
             message.from
           );
           if (addResult.success) {
@@ -61,6 +63,20 @@ export class ColorPickerViewProvider implements vscode.WebviewViewProvider {
           } else {
             vscode.window.showWarningMessage(
               addResult.message || 'Failed to add color'
+            );
+          }
+          break;
+        case 'renameColor':
+          const renameResult = await this.manager.renameColor(
+            message.color,
+            message.name,
+            message.from
+          );
+          if (renameResult.success) {
+            this.updateWebview();
+          } else {
+            vscode.window.showWarningMessage(
+              renameResult.message || 'Failed to rename color.'
             );
           }
           break;
@@ -279,7 +295,8 @@ export class ColorPickerViewProvider implements vscode.WebviewViewProvider {
         </div>
         <div id="savedColorsView" class="view-content">
           <div class="color-input-bar">
-            <input class="color-input" type="text" id="savedColorsInput" placeholder="Enter color (hex, rgb, hsv, hsl)" />
+            <input class="color-input" type="text" id="savedColorsInput" placeholder="Color (hex, rgb, hsv, hsl)" />
+            <input class="color-name-input" type="text" id="savedColorsNameInput" placeholder="Name (optional)" />
             <button class="add-color-btn" id="addSavedColorBtn">+ Add Color</button>
           </div>
           <div id="savedColorsList"  class="color-listing"></div>
@@ -295,7 +312,8 @@ export class ColorPickerViewProvider implements vscode.WebviewViewProvider {
 Back</button>
           <h3 id="projectColorsTitle" class="project-title"></h3>
           <div class="color-input-bar">
-            <input class="color-input" type="text" id="projectColorInput" placeholder="Enter color (hex, rgb, rgba, hsl)" />
+            <input class="color-input" type="text" id="projectColorInput" placeholder="Color (hex, rgb, rgba, hsl)" />
+            <input class="color-name-input" type="text" id="projectColorNameInput" placeholder="Name (optional)" />
             <button class="add-color-btn" id="addProjectColorBtn">Add Color</button>
           </div>
           <div id="projectColorsList" class="project-color-listing"></div>

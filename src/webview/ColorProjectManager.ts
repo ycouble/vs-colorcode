@@ -1,198 +1,187 @@
 import * as vscode from 'vscode';
-import type { ColorProject } from '../utils/types';
+import type { ColorProject, ColorScope, StoredColor } from '../utils/types';
 import { isValidColor } from '../utils/colorUtils';
+import { ColorStoreFs } from '../storage/ColorStoreFs';
+
+const DEFAULT_COLORS = ['#FF5733', '#33C1FF', '#28A745', '#FFC107', '#6F42C1'];
+const SEEDED_FLAG = 'colorStore.seeded';
+const CURRENT_PROJECT_KEY = 'colorStore.currentProjectId';
 
 export class ColorProjectManager {
-  private savedColors: string[] = [];
+  private savedColors: StoredColor[] = [];
   private projects: ColorProject[] = [];
   private currentProjectId: string = '';
   private initialized: boolean = false;
-  private globalState: vscode.Memento;
-  constructor(globalState: vscode.Memento) {
-    this.globalState = globalState;
-  }
-  public async initialize(): Promise<void> {
-    if (!this.initialized) {
-      try {
-        const isSeeded = this.globalState.get<boolean>(
-          'colorStore.initialized'
-        );
 
-        if (!isSeeded) {
-          await this.seedDefaultColors();
-          await this.globalState.update('colorStore.initialized', true);
-        }
-        await this.loadData();
-        this.initialized = true;
-      } catch (error) {
-        vscode.window.showErrorMessage(
-          'Failed to load color data: ' + (error as Error).message
-        );
-        this.savedColors = [];
-        this.projects = [];
-        this.currentProjectId = '';
-        this.initialized = true;
-      }
-    }
+  private readonly _onDidChange = new vscode.EventEmitter<void>();
+  readonly onDidChange = this._onDidChange.event;
+
+  constructor(
+    private readonly fs: ColorStoreFs,
+    private readonly globalState: vscode.Memento
+  ) {
+    // External edits (git pull, manual file edit) → reload + notify listeners.
+    this.fs.onDidChange(async () => {
+      await this.reload();
+      this._onDidChange.fire();
+    });
   }
-  private async seedDefaultColors() {
-    await this.loadData();
-    if (this.savedColors.length > 0) {
+
+  public async initialize(): Promise<void> {
+    if (this.initialized) {
       return;
     }
+    try {
+      await this.reload();
+      await this.seedDefaultColorsIfNeeded();
+    } catch (error) {
+      vscode.window.showErrorMessage(
+        'Failed to load color data: ' + (error as Error).message
+      );
+      this.savedColors = [];
+      this.projects = [];
+      this.currentProjectId = '';
+    }
+    this.initialized = true;
+  }
 
-    const defaultColors = [
-      '#FF5733',
-      '#33C1FF',
-      '#28A745',
-      '#FFC107',
-      '#6F42C1',
-    ];
+  /** Reload all state from disk (source of truth is the .colorstore/ files). */
+  public async reload(): Promise<void> {
+    const { projects, saved } = await this.fs.loadAll();
+    this.projects = projects;
+    this.savedColors = saved;
+    const stored =
+      this.globalState.get<string>(CURRENT_PROJECT_KEY) || '';
+    this.currentProjectId = this.projects.some((p) => p.id === stored)
+      ? stored
+      : '';
+  }
 
-    const addedColors: string[] = [];
-
-    for (const color of defaultColors) {
+  private async seedDefaultColorsIfNeeded(): Promise<void> {
+    if (this.globalState.get<boolean>(SEEDED_FLAG) || this.savedColors.length > 0) {
+      return;
+    }
+    for (const color of DEFAULT_COLORS) {
       const { isValid, acceptableColor } = isValidColor(color);
       if (
         isValid &&
         acceptableColor &&
-        !this.savedColors.includes(acceptableColor)
+        !this.savedColors.some((c) => c.value === acceptableColor)
       ) {
-        this.savedColors.unshift(acceptableColor);
-        addedColors.push(acceptableColor);
+        this.savedColors.push({ value: acceptableColor });
       }
     }
-
-    await this.saveData();
+    const wrote = await this.fs.persist(this.projects, this.savedColors);
+    if (wrote) {
+      await this.globalState.update(SEEDED_FLAG, true);
+    }
   }
 
-  private async loadData() {
-    const config = vscode.workspace.getConfiguration('color-store');
-    // Use Promise.all for parallel loading
-    const [savedColors, projects, currentProjectId] = await Promise.all([
-      config.get<string[]>('savedColors'),
-      config.get<ColorProject[]>('projects'),
-      config.get<string>('currentProjectId'),
-    ]);
-    // Clean the loaded data
-    this.savedColors = (savedColors || []).filter(
-      (c) => c !== null && c.trim() !== ''
-    );
-    this.projects = (projects || []).map((project) => ({
-      ...project,
-      colors: (project.colors || []).filter(
-        (c) => c !== null && c.trim() !== ''
-      ),
-    }));
-    this.currentProjectId =
-      typeof currentProjectId === 'string' ? currentProjectId : '';
+  private async saveData(): Promise<void> {
+    await this.fs.persist(this.projects, this.savedColors);
+    await this.globalState.update(CURRENT_PROJECT_KEY, this.currentProjectId);
   }
 
-  private async saveData() {
-    const config = vscode.workspace.getConfiguration('color-store');
-    await config.update(
-      'savedColors',
-      this.savedColors,
-      vscode.ConfigurationTarget.Global
-    );
-    await config.update(
-      'projects',
-      this.projects,
-      vscode.ConfigurationTarget.Global
-    );
-    await config.update(
-      'currentProjectId',
-      this.currentProjectId,
-      vscode.ConfigurationTarget.Global
-    );
+  private targetList(from: ColorScope): StoredColor[] | undefined {
+    if (from === 'project') {
+      return this.projects.find((p) => p.id === this.currentProjectId)?.colors;
+    }
+    return this.savedColors;
   }
 
   public async addColor(
     color: string,
-    from: 'saved' | 'project' = 'saved'
+    name?: string,
+    from: ColorScope = 'saved'
   ): Promise<{ success: boolean; message?: string; color?: string }> {
     const { isValid, acceptableColor } = isValidColor(color);
     if (!isValid || !acceptableColor) {
       return { success: false, message: 'Invalid color format.' };
     }
-    const colorToSave = acceptableColor;
-    if (from === 'project' && this.currentProjectId) {
-      const project = this.projects.find((p) => p.id === this.currentProjectId);
-      if (project) {
-        if (project.colors.includes(colorToSave)) {
-          return {
-            success: false,
-            message: `${colorToSave} is already in this Project.`,
-          };
-        }
-        project.colors.unshift(colorToSave);
-        await this.saveData();
-        return {
-          success: true,
-          color: colorToSave,
-          message: `${colorToSave} added to Project.`,
-        };
-      }
-    } else {
-      if (this.savedColors.includes(colorToSave)) {
-        return {
-          success: false,
-          message: `${colorToSave} is already in Saved colors.`,
-        };
-      }
-      this.savedColors.unshift(colorToSave);
-      await this.saveData();
+    const list = this.targetList(from);
+    if (!list) {
       return {
-        success: true,
-        color: colorToSave,
-        message: `${colorToSave} Saved.`,
+        success: false,
+        message: 'No active project. Create or select one first.',
       };
     }
-    return { success: false, message: 'Failed to add color.' };
+    if (list.some((c) => c.value === acceptableColor)) {
+      return {
+        success: false,
+        message: `${acceptableColor} is already in ${
+          from === 'project' ? 'this Project' : 'Saved colors'
+        }.`,
+      };
+    }
+    const cleanName = name?.trim();
+    list.unshift(cleanName ? { value: acceptableColor, name: cleanName } : { value: acceptableColor });
+    await this.saveData();
+    return {
+      success: true,
+      color: acceptableColor,
+      message: `${acceptableColor} added.`,
+    };
   }
 
-  // Remove a color from either saved colors or current project
   public async removeColor(
-    color: string,
-    from: 'saved' | 'project' = 'saved'
+    value: string,
+    from: ColorScope = 'saved'
   ): Promise<{ success: boolean; message?: string }> {
-    let removed = false;
-    if (from === 'project' && this.currentProjectId) {
+    const list = this.targetList(from);
+    if (!list) {
+      return { success: false, message: 'Color not found.' };
+    }
+    const originalLength = list.length;
+    const filtered = list.filter((c) => c.value !== value);
+    if (filtered.length === originalLength) {
+      return { success: false, message: 'Color not found.' };
+    }
+    if (from === 'project') {
       const project = this.projects.find((p) => p.id === this.currentProjectId);
       if (project) {
-        const originalLength = project.colors.length;
-        project.colors = project.colors.filter((c) => c !== color);
-        removed = project.colors.length !== originalLength;
+        project.colors = filtered;
       }
     } else {
-      const originalLength = this.savedColors.length;
-      this.savedColors = this.savedColors.filter((c) => c !== color);
-      removed = this.savedColors.length !== originalLength;
+      this.savedColors = filtered;
     }
-    if (removed) {
-      await this.saveData();
-      return {
-        success: true,
-        message: `${color} removed from ${
-          from === 'project' ? 'Project' : 'Saved colors.'
-        }`,
-      };
-    }
-    return { success: false, message: 'Color not found.' };
+    await this.saveData();
+    return {
+      success: true,
+      message: `${value} removed from ${
+        from === 'project' ? 'Project' : 'Saved colors'
+      }.`,
+    };
   }
 
-  // Create a new project
+  public async renameColor(
+    value: string,
+    name: string | undefined,
+    from: ColorScope = 'saved'
+  ): Promise<{ success: boolean; message?: string }> {
+    const list = this.targetList(from);
+    const entry = list?.find((c) => c.value === value);
+    if (!entry) {
+      return { success: false, message: 'Color not found.' };
+    }
+    const cleanName = name?.trim();
+    if (cleanName) {
+      entry.name = cleanName;
+    } else {
+      delete entry.name;
+    }
+    await this.saveData();
+    return { success: true, message: `${value} renamed.` };
+  }
+
   public async createProject(name: string): Promise<boolean> {
     if (!name || name.trim() === '') {
       return false;
     }
-
     const newProject: ColorProject = {
       id: Date.now().toString(),
-      name: name,
+      name: name.trim(),
       colors: [],
     };
-
     this.projects.unshift(newProject);
     this.currentProjectId = newProject.id;
     await this.saveData();
@@ -201,39 +190,45 @@ export class ColorProjectManager {
 
   public async selectProject(projectId: string): Promise<void> {
     this.currentProjectId = projectId;
-    await this.saveData();
+    await this.globalState.update(CURRENT_PROJECT_KEY, this.currentProjectId);
   }
 
   public async deleteProject(projectId: string): Promise<boolean> {
     const idx = this.projects.findIndex((p) => p.id === projectId);
-    if (idx !== -1) {
-      this.projects.splice(idx, 1);
-      if (this.currentProjectId === projectId) {
-        this.currentProjectId = '';
-      }
-      await this.saveData();
-      return true;
+    if (idx === -1) {
+      return false;
     }
-    return false;
+    this.projects.splice(idx, 1);
+    if (this.currentProjectId === projectId) {
+      this.currentProjectId = '';
+    }
+    await this.saveData();
+    return true;
   }
-  getSavedColors() {
+
+  getSavedColors(): StoredColor[] {
     return this.savedColors;
   }
 
-  getProjects() {
+  getProjects(): ColorProject[] {
     return this.projects;
   }
 
-  getCurrentProject() {
-    const currentProject = this.projects.find(
-      (p) => p.id === this.currentProjectId
+  getCurrentProject(): ColorProject | null {
+    return (
+      this.projects.find((p) => p.id === this.currentProjectId) ?? null
     );
-    return currentProject
-      ? {
-          id: currentProject.id,
-          name: currentProject.name,
-          colors: currentProject.colors,
-        }
-      : null;
+  }
+
+  getCurrentProjectId(): string {
+    return this.currentProjectId;
+  }
+
+  hasWorkspaceFolder(): boolean {
+    return this.fs.resolveActiveFolder() !== undefined;
+  }
+
+  dispose(): void {
+    this._onDidChange.dispose();
   }
 }

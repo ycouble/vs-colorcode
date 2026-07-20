@@ -28,8 +28,12 @@
 
 ## Features
 
-- **Save & Organize Colors:** Store your favorite color codes (hex, rgb, hsl, etc.) for quick access.
-- **Project-Based Color Palettes:** Create unlimited projects and manage color palettes for each project separately.
+- **Save & Organize Colors:** Store your favorite color codes (hex, rgb, hsl, named CSS colors, etc.) for quick access.
+- **Name Your Colors:** Give any color a human-friendly name — in your saved colors and in each project. Add a name when saving, or rename later with the ✎ button.
+- **Project Palettes Stored in Your Repo:** Projects are saved as human-readable JSON in a `.colorstore/` folder at your workspace root (one file per project, e.g. `.colorstore/brand.json`), so you can **commit and share** them with your team. Personal colors live in `.colorstore/saved-colors.json`.
+- **Auto-Sync:** The sidebar refreshes automatically when the `.colorstore/` files change on disk (for example after a `git pull`).
+- **Scan Any File for Colors:** Color literals (hex, `rgb()/rgba()`, `hsl()/hsla()`, and CSS color names in CSS files) are recognized in your files. VS Code shows its native color swatch + picker, and a discreet inline label shows the palette name when a literal matches a **named** color of your current project.
+- **Quick Actions on Hover:** Hover a color literal to *Add it to the current project*, *Replace it with a project color*, *Name / rename it*, or *Copy* it (plain / Tailwind / CSS).
 - **Copy Color Codes Instantly:** Copy colors in multiple formats:
   - Plain text (e.g., `#1A1A1A`, `rgb(0, 0, 0)`)
   - Tailwind CSS (`bg-[#1A1A1A]`, `text-[#1A1A1A]`, `text-[rgb(0,0,0)]`)
@@ -85,9 +89,30 @@
 
 ---
 
+## Where Your Data Lives
+
+Projects and personal colors are stored as JSON files in a `.colorstore/` folder at your workspace root:
+
+```
+.colorstore/
+  brand.json          # one file per project  { version, kind, id, name, colors }
+  saved-colors.json   # your personal saved colors
+```
+
+Commit these files to share palettes with your team. If you'd rather keep your personal colors out of git, add `.colorstore/saved-colors.json` to your `.gitignore`.
+
+> On first launch with a folder open, any projects/colors from the previous versions (stored in VS Code global settings) are migrated automatically into `.colorstore/`. The old settings are kept as a backup.
+
 ## Extension Settings
 
-All your colors and projects are stored in VS Code’s global settings. No external accounts or cloud sync required.
+| Setting | Default | Description |
+| --- | --- | --- |
+| `color-store.storeFolder` | `.colorstore` | Folder (relative to the workspace root) holding the palette files. |
+| `color-store.scan.enabled` | `true` | Detect color literals in files (native swatch, palette-name annotation, hover actions). |
+| `color-store.scan.languages` | `[]` (all files) | Optional allow-list of language ids to scan. Empty means every file; add ids (e.g. `css`, `typescript`) to restrict. |
+| `color-store.scan.matchNamedCssColors` | `true` | Also recognize CSS color names (`red`, `gold`…), limited to CSS-family languages to avoid false positives. |
+
+Commands: **Scan active editor for colors** and **Toggle color scanning** are available from the Command Palette.
 
 ---
 

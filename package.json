@@ -1,13 +1,8 @@
 {
-  "name": "color-store",
-  "displayName": "Color Store",
-  "description": "A simple VS Code extension to save, organize, and preview your colors. Supports Tailwind CSS, custom projects, and live color previews.",
+  "name": "vs-namedcolorcode",
+  "displayName": "Named Color Store",
+  "description": "Save, name, and organize colors in committable per-repo palettes, and recognize color literals directly in your files.",
   "publisher": "binyam",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/binzam/vs-colorcode.git"
-  },
-  "homepage": "https://vs-color-store.netlify.app",
   "version": "0.0.3",
   "icon": "media/icons/color-store-logo.png",
   "galleryBanner.color": {
@@ -35,7 +30,10 @@
     "design",
     "theme"
   ],
-  "activationEvents": [],
+  "activationEvents": [
+    "onStartupFinished",
+    "workspaceContains:.colorstore/*.json"
+  ],
   "main": "./dist/extension.js",
   "contributes": {
     "configuration": {
@@ -44,17 +42,56 @@
         "color-store.savedColors": {
           "type": "array",
           "default": [],
-          "description": "Stores your collection of saved colors"
+          "markdownDeprecationMessage": "Les couleurs sont désormais stockées dans `.colorstore/saved-colors.json`. Cette valeur n'est conservée que comme sauvegarde pour la migration.",
+          "description": "(Déprécié) Ancien stockage des couleurs sauvegardées."
         },
         "color-store.projects": {
           "type": "array",
           "default": [],
-          "description": "Stores your color projects"
+          "markdownDeprecationMessage": "Les projets sont désormais stockés dans `.colorstore/<projet>.json`. Cette valeur n'est conservée que comme sauvegarde pour la migration.",
+          "description": "(Déprécié) Ancien stockage des projets de couleurs."
         },
         "color-store.currentProjectId": {
           "type": "string",
           "default": "",
-          "description": "Current active project ID"
+          "markdownDeprecationMessage": "Le projet actif est désormais mémorisé dans l'état interne de l'extension.",
+          "description": "(Déprécié) Ancien identifiant de projet actif."
+        },
+        "color-store.storeFolder": {
+          "type": "string",
+          "default": ".colorstore",
+          "description": "Dossier (relatif à la racine du workspace) où sont stockés les fichiers de palettes committables."
+        },
+        "color-store.scan.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Détecter les color literals dans les fichiers (pastille native, annotation du nom de palette, actions au survol)."
+        },
+        "color-store.scan.languages": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": [
+            "css",
+            "scss",
+            "less",
+            "sass",
+            "html",
+            "vue",
+            "svelte",
+            "javascript",
+            "javascriptreact",
+            "typescript",
+            "typescriptreact",
+            "yaml"
+          ],
+          "markdownDescription": "Liste blanche optionnelle des langages à scanner. **Vide = tous les fichiers** (comportement par défaut). Renseigne des identifiants de langage (ex. `css`, `typescript`) pour restreindre le scan."
+        },
+        "color-store.scan.matchNamedCssColors": {
+          "type": "boolean",
+          "default": true,
+          "description": "Reconnaître aussi les noms de couleurs CSS (red, gold…). Limité aux langages CSS pour éviter les faux positifs."
         }
       }
     },
@@ -102,6 +139,36 @@
         "command": "color-store.showProjects",
         "title": "Show Projects",
         "category": "Color Store"
+      },
+      {
+        "command": "color-store.addLiteralToProject",
+        "title": "Add color to current project",
+        "category": "Color Store"
+      },
+      {
+        "command": "color-store.replaceLiteral",
+        "title": "Replace with a project color",
+        "category": "Color Store"
+      },
+      {
+        "command": "color-store.nameLiteral",
+        "title": "Name / rename this color",
+        "category": "Color Store"
+      },
+      {
+        "command": "color-store.copyLiteral",
+        "title": "Copy this color",
+        "category": "Color Store"
+      },
+      {
+        "command": "color-store.scanActiveEditor",
+        "title": "Scan active editor for colors",
+        "category": "Color Store"
+      },
+      {
+        "command": "color-store.toggleScan",
+        "title": "Toggle color scanning",
+        "category": "Color Store"
       }
     ],
     "menus": {
@@ -113,6 +180,29 @@
         {
           "command": "color-store.showProjects",
           "when": "view == color-store-view"
+        },
+        {
+          "command": "color-store.scanActiveEditor",
+          "when": "editorIsOpen"
+        },
+        {
+          "command": "color-store.toggleScan"
+        },
+        {
+          "command": "color-store.addLiteralToProject",
+          "when": "false"
+        },
+        {
+          "command": "color-store.replaceLiteral",
+          "when": "false"
+        },
+        {
+          "command": "color-store.nameLiteral",
+          "when": "false"
+        },
+        {
+          "command": "color-store.copyLiteral",
+          "when": "false"
         }
       ]
     },
@@ -137,7 +227,8 @@
     "pretest": "npm run compile-tests && npm run compile && npm run lint",
     "check-types": "tsc --noEmit",
     "lint": "eslint src",
-    "test": "vscode-test"
+    "test": "vscode-test",
+    "install-local": "bash scripts/install-local.sh"
   },
   "devDependencies": {
     "@types/mocha": "^10.0.10",

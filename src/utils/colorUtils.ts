@@ -33,6 +33,12 @@ export function isValidColor(input: string): {
     };
   }
 
+  // Named CSS colors (e.g. "red") canonicalize to hex so they match hex
+  // palette entries and can be stored consistently.
+  if (format === 'name') {
+    return { isValid: true, acceptableColor: color.toHexString() };
+  }
+
   return { isValid: false };
 }
 // Normalize any input to hex and remember the format

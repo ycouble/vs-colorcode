@@ -430,3 +430,62 @@ input.color-input:focus {
     padding: 2px;
   }
 }
+
+/* --- Named colors --------------------------------------------------- */
+input.color-name-input {
+  flex: 1;
+  min-width: 90px;
+  background-color: #eee;
+  border: 1px solid #005fa3;
+  border-radius: 5px;
+  outline: none;
+  padding: 5px 10px;
+  height: 30px;
+  color: #1e1e1e;
+}
+input.color-name-input:focus {
+  border: 1px solid #0090f1;
+}
+.color-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  align-items: flex-start;
+}
+.color-name {
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: bold;
+  padding: 2px 8px;
+  background-color: rgba(255, 255, 255, 0.85);
+  color: #1e1e1e;
+  border-radius: 5px;
+  box-shadow: 0px 2px 2px #333;
+}
+.rename-btn {
+  padding: 4px 8px;
+  background-color: #005fa3;
+  color: #fff;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.rename-btn:hover {
+  background-color: #007acc;
+}
+.rename-bar {
+  display: none;
+  width: 100%;
+  margin-top: 5px;
+}
+.rename-input {
+  width: 100%;
+  background-color: #eee;
+  border: 1px solid #0090f1;
+  border-radius: 5px;
+  outline: none;
+  padding: 5px 10px;
+  height: 28px;
+  color: #1e1e1e;
+}

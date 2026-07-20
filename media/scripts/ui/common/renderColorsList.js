@@ -2,21 +2,33 @@ export function renderColorsList(container, colors, type) {
   container.innerHTML = colors.length
     ? colors
         .map((color, index) => {
+          const value = color.value;
+          const name = color.name || '';
           const id = `copy-options-${type}-${index}`;
-          return /*html*/ `<div class="color-item" style="background:${color}">
-          <span class="color-code">${color}</span>
+          const renameId = `rename-${type}-${index}`;
+          const nameLabel = name
+            ? `<span class="color-name">${escapeHtml(name)}</span>`
+            : '';
+          return /*html*/ `<div class="color-item" style="background:${value}">
+          <div class="color-meta">
+            ${nameLabel}
+            <span class="color-code">${value}</span>
+          </div>
           <div class="color-actions">
-            <button class="copy-btn" title="Copy"  data-color="${color}" data-options-id="${id}">📋</button>
+            <button class="copy-btn" title="Copy"  data-color="${value}" data-options-id="${id}">📋</button>
             <div id="${id}" class="copy-options">
-              <button class="copy-option" data-format="plain">${color}</button>
-              <button class="copy-option" data-format="tailwind-bg">bg-[${color}]</button>
-              <button class="copy-option" data-format="tailwind-text">text-[${color}]</button>
-              <button class="copy-option" data-format="css-color">color: ${color};</button>
-              <button class="copy-option" data-format="css-bg">background-color: ${color};</button>
+              <button class="copy-option" data-format="plain">${value}</button>
+              <button class="copy-option" data-format="tailwind-bg">bg-[${value}]</button>
+              <button class="copy-option" data-format="tailwind-text">text-[${value}]</button>
+              <button class="copy-option" data-format="css-color">color: ${value};</button>
+              <button class="copy-option" data-format="css-bg">background-color: ${value};</button>
             </div>
-            
-  <button class="preview-btn" title="Preview" data-color="${color}">👁️</button>
-            <button class="remove-btn" data-color="${color}" data-type="${type}">🗑️</button>
+            <button class="rename-btn" title="Name / rename" data-rename-id="${renameId}">✎</button>
+  <button class="preview-btn" title="Preview" data-color="${value}">👁️</button>
+            <button class="remove-btn" data-color="${value}" data-type="${type}">🗑️</button>
+          </div>
+          <div id="${renameId}" class="rename-bar">
+            <input class="rename-input" type="text" value="${escapeAttr(name)}" placeholder="Color name" data-color="${value}" data-type="${type}" />
           </div>
         </div>`;
         })
@@ -24,6 +36,17 @@ export function renderColorsList(container, colors, type) {
     : /*html*/ `<p>No colors saved yet</p>`;
 
   setupColorActions(container);
+}
+
+function escapeHtml(str) {
+  return String(str)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+function escapeAttr(str) {
+  return escapeHtml(str).replace(/"/g, '&quot;');
 }
 
 function setupColorActions(container) {
@@ -64,6 +87,43 @@ function setupColorActions(container) {
     btn.addEventListener('click', () => {
       vscode.postMessage({ command: 'previewColor', color: btn.dataset.color });
     });
+  });
+
+  container.querySelectorAll('.rename-btn').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const bar = document.getElementById(btn.dataset.renameId);
+      const isVisible = bar.style.display === 'flex';
+      document
+        .querySelectorAll('.rename-bar')
+        .forEach((el) => (el.style.display = 'none'));
+      bar.style.display = isVisible ? 'none' : 'flex';
+      if (!isVisible) {
+        const field = bar.querySelector('.rename-input');
+        field.focus();
+        field.select();
+      }
+    });
+  });
+
+  container.querySelectorAll('.rename-input').forEach((field) => {
+    const commit = () => {
+      vscode.postMessage({
+        command: 'renameColor',
+        color: field.dataset.color,
+        name: field.value.trim(),
+        from: field.dataset.type,
+      });
+      field.closest('.rename-bar').style.display = 'none';
+    };
+    field.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        commit();
+      } else if (e.key === 'Escape') {
+        field.closest('.rename-bar').style.display = 'none';
+      }
+    });
+    field.addEventListener('click', (e) => e.stopPropagation());
   });
 
   document.addEventListener('click', (e) => {
