@@ -5,8 +5,7 @@ export function renderColorsList(container, colors, type) {
           const value = color.value;
           const name = color.name || '';
           const id = `copy-options-${type}-${index}`;
-          const renameId = `rename-${type}-${index}`;
-          const editValueId = `edit-value-${type}-${index}`;
+          const editId = `edit-${type}-${index}`;
           const nameLabel = name
             ? `<span class="color-name">${escapeHtml(name)}</span>`
             : '';
@@ -24,16 +23,17 @@ export function renderColorsList(container, colors, type) {
               <button class="copy-option" data-format="css-color">color: ${value};</button>
               <button class="copy-option" data-format="css-bg">background-color: ${value};</button>
             </div>
-            <button class="rename-btn" title="Name / rename" data-rename-id="${renameId}">✎</button>
-            <button class="edit-value-btn" title="Change color everywhere in the repo" data-edit-id="${editValueId}">🔁</button>
-  <button class="preview-btn" title="Preview" data-color="${value}">👁️</button>
-            <button class="remove-btn" data-color="${value}" data-type="${type}">🗑️</button>
+            <button class="edit-btn" title="Edit name & color" data-edit-id="${editId}">✏️</button>
+            <button class="preview-btn" title="Preview" data-color="${value}">🎨</button>
+            <button class="remove-btn" title="Delete" data-color="${value}" data-type="${type}">🗑️</button>
           </div>
-          <div id="${renameId}" class="rename-bar">
-            <input class="rename-input" type="text" value="${escapeAttr(name)}" placeholder="Color name" data-color="${value}" data-type="${type}" />
-          </div>
-          <div id="${editValueId}" class="rename-bar edit-value-bar">
-            <input class="rename-input edit-value-input" type="text" value="${escapeAttr(value)}" placeholder="New color (hex, rgb, hsl…)" title="Enter: preview & replace every occurrence in the repo" data-color="${value}" data-type="${type}" />
+          <div id="${editId}" class="edit-bar" data-color="${value}" data-name="${escapeAttr(name)}" data-type="${type}">
+            <input class="edit-input edit-name-input" type="text" value="${escapeAttr(name)}" placeholder="Color name" />
+            <div class="edit-color-row">
+              <input class="edit-color-picker" type="color" title="Pick a color" />
+              <input class="edit-input edit-color-input" type="text" value="${escapeAttr(value)}" placeholder="Color (hex, rgb, hsl…)" title="Changing the color replaces every occurrence in the repo" />
+              <button class="edit-apply-btn" title="Apply">✓</button>
+            </div>
           </div>
         </div>`;
         })
@@ -52,6 +52,22 @@ function escapeHtml(str) {
 
 function escapeAttr(str) {
   return escapeHtml(str).replace(/"/g, '&quot;');
+}
+
+// Convert any CSS color to "#rrggbb" for <input type="color">, by letting the
+// DOM parse it (rgb()/hsl()/names all resolve through computed style).
+function toHexApprox(value) {
+  const probe = document.createElement('span');
+  probe.style.color = value;
+  document.body.appendChild(probe);
+  const computed = getComputedStyle(probe).color;
+  probe.remove();
+  const m = computed.match(/rgba?\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)/);
+  if (!m) {
+    return '#000000';
+  }
+  const hex = (n) => Number(m[n]).toString(16).padStart(2, '0');
+  return `#${hex(1)}${hex(2)}${hex(3)}`;
 }
 
 function setupColorActions(container) {
@@ -94,81 +110,77 @@ function setupColorActions(container) {
     });
   });
 
-  container.querySelectorAll('.rename-btn').forEach((btn) => {
-    btn.addEventListener('click', (e) => {
-      e.stopPropagation();
-      const bar = document.getElementById(btn.dataset.renameId);
-      const isVisible = bar.style.display === 'flex';
-      document
-        .querySelectorAll('.rename-bar')
-        .forEach((el) => (el.style.display = 'none'));
-      bar.style.display = isVisible ? 'none' : 'flex';
-      if (!isVisible) {
-        const field = bar.querySelector('.rename-input');
-        field.focus();
-        field.select();
-      }
-    });
-  });
-
-  container.querySelectorAll('.edit-value-btn').forEach((btn) => {
+  container.querySelectorAll('.edit-btn').forEach((btn) => {
     btn.addEventListener('click', (e) => {
       e.stopPropagation();
       const bar = document.getElementById(btn.dataset.editId);
       const isVisible = bar.style.display === 'flex';
       document
-        .querySelectorAll('.rename-bar')
+        .querySelectorAll('.edit-bar')
         .forEach((el) => (el.style.display = 'none'));
       bar.style.display = isVisible ? 'none' : 'flex';
       if (!isVisible) {
-        const field = bar.querySelector('.edit-value-input');
-        field.focus();
-        field.select();
+        const nameField = bar.querySelector('.edit-name-input');
+        bar.querySelector('.edit-color-picker').value = toHexApprox(
+          bar.dataset.color
+        );
+        nameField.focus();
+        nameField.select();
       }
     });
   });
 
-  container.querySelectorAll('.edit-value-input').forEach((field) => {
+  container.querySelectorAll('.edit-bar').forEach((bar) => {
+    const nameField = bar.querySelector('.edit-name-input');
+    const colorField = bar.querySelector('.edit-color-input');
+    const picker = bar.querySelector('.edit-color-picker');
+    const applyBtn = bar.querySelector('.edit-apply-btn');
+
+    // Keep the swatch and the text field in sync, both ways.
+    picker.addEventListener('input', () => {
+      colorField.value = picker.value;
+    });
+    colorField.addEventListener('input', () => {
+      picker.value = toHexApprox(colorField.value);
+    });
+
+    // Apply only what actually changed: name → rename, color → repo-wide
+    // replace (occurrence preview handled by the extension side).
     const commit = () => {
-      const newColor = field.value.trim();
-      if (newColor && newColor !== field.dataset.color) {
+      const newName = nameField.value.trim();
+      const newColor = colorField.value.trim();
+      if (newName !== bar.dataset.name) {
         vscode.postMessage({
-          command: 'replaceColorEverywhere',
-          color: field.dataset.color,
-          newColor,
-          from: field.dataset.type,
+          command: 'renameColor',
+          color: bar.dataset.color,
+          name: newName,
+          from: bar.dataset.type,
         });
       }
-      field.closest('.rename-bar').style.display = 'none';
-    };
-    field.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        commit();
-      } else if (e.key === 'Escape') {
-        field.closest('.rename-bar').style.display = 'none';
+      if (newColor && newColor !== bar.dataset.color) {
+        vscode.postMessage({
+          command: 'replaceColorEverywhere',
+          color: bar.dataset.color,
+          newColor,
+          from: bar.dataset.type,
+        });
       }
+      bar.style.display = 'none';
+    };
+    applyBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      commit();
     });
-    field.addEventListener('click', (e) => e.stopPropagation());
-  });
-
-  container.querySelectorAll('.rename-input:not(.edit-value-input)').forEach((field) => {
-    const commit = () => {
-      vscode.postMessage({
-        command: 'renameColor',
-        color: field.dataset.color,
-        name: field.value.trim(),
-        from: field.dataset.type,
+    [nameField, colorField].forEach((field) => {
+      field.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+          commit();
+        } else if (e.key === 'Escape') {
+          bar.style.display = 'none';
+        }
       });
-      field.closest('.rename-bar').style.display = 'none';
-    };
-    field.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        commit();
-      } else if (e.key === 'Escape') {
-        field.closest('.rename-bar').style.display = 'none';
-      }
+      field.addEventListener('click', (e) => e.stopPropagation());
     });
-    field.addEventListener('click', (e) => e.stopPropagation());
   });
 
   document.addEventListener('click', (e) => {

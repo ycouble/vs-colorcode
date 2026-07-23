@@ -118,31 +118,18 @@ input.color-input:focus {
 }
 
 .copy-btn {
-  padding: 4px;
-  background-color: #005fa3;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #fff;
-  border-radius: 4px;
+  background-color: #ffffff;
+  color: #1e1e1e;
 }
 .copy-btn:hover {
-  background-color: #007acc;
+  background-color: #d6d6d6;
 }
 .preview-btn {
-  padding: 4px 8px;
-  background-color: #023047;
-  color: #fff;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid #023047;
-  transition: all 0.3s ease;
+  background-color: #ffffff;
+  color: #1e1e1e;
 }
 .preview-btn:hover {
-  background-color: #333;
-  border: 1px solid #005fa3;
+  background-color: #d6d6d6;
 }
 
 .project-modal {
@@ -229,6 +216,23 @@ input.color-input:focus {
   background-color: rgba(255, 255, 255, 0.65);
   border-radius: 10px;
   box-shadow: 0px 2px 2px #333;
+}
+
+/* One size for every action button so the row stays aligned. */
+.color-actions > button {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  opacity: 1;
 }
 
 .copy-options {
@@ -339,14 +343,18 @@ input.color-input:focus {
   margin-left: auto;
 }
 .remove-btn {
-  background-color: #1e1e1e;
+  background-color: #d32f2f;
+  color: #fff;
   margin: 0;
+  opacity: 1;
 }
-.delete-project-btn:hover,
-.remove-btn:hover {
+.delete-project-btn:hover {
   background-color: var(--vscode-list-activeSelectionBackground);
   color: var(--vscode-errorForeground);
   opacity: 1;
+}
+.remove-btn:hover {
+  background-color: #b71c1c;
 }
 
 .delete-project-btn svg {
@@ -412,8 +420,10 @@ input.color-input:focus {
     padding: 2px 5px;
     border-radius: 5px;
   }
-  .copy-btn {
-    padding: 2px;
+  .color-actions > button {
+    width: 22px;
+    height: 22px;
+    font-size: 11px;
   }
   .copy-options {
     border-radius: 5px;
@@ -422,12 +432,6 @@ input.color-input:focus {
   .copy-option {
     padding: 3px 2px;
     margin: 2px 0;
-  }
-  .preview-btn {
-    padding: 2px 4px;
-  }
-  .remove-btn {
-    padding: 2px;
   }
 }
 
@@ -462,26 +466,21 @@ input.color-name-input:focus {
   border-radius: 5px;
   box-shadow: 0px 2px 2px #333;
 }
-.rename-btn,
-.edit-value-btn {
-  padding: 4px 8px;
+.edit-btn {
   background-color: #005fa3;
   color: #fff;
-  border-radius: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
 }
-.rename-btn:hover,
-.edit-value-btn:hover {
+.edit-btn:hover {
   background-color: #007acc;
 }
-.rename-bar {
+.edit-bar {
   display: none;
   width: 100%;
   margin-top: 5px;
+  flex-direction: column;
+  gap: 5px;
 }
-.rename-input {
+.edit-input {
   width: 100%;
   background-color: #eee;
   border: 1px solid #0090f1;
@@ -490,4 +489,36 @@ input.color-name-input:focus {
   padding: 5px 10px;
   height: 28px;
   color: #1e1e1e;
+  box-sizing: border-box;
+}
+.edit-color-row {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.edit-color-row .edit-color-input {
+  flex: 1;
+  width: auto;
+}
+.edit-color-picker {
+  width: 34px;
+  height: 28px;
+  padding: 0;
+  border: 1px solid #0090f1;
+  border-radius: 5px;
+  background: none;
+  cursor: pointer;
+}
+.edit-apply-btn {
+  height: 28px;
+  padding: 0 10px;
+  border: none;
+  border-radius: 5px;
+  background-color: #005fa3;
+  color: #fff;
+  cursor: pointer;
+  font-weight: bold;
+}
+.edit-apply-btn:hover {
+  background-color: #007acc;
 }

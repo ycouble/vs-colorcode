@@ -29,12 +29,13 @@
 ## Features
 
 - **Save & Organize Colors:** Store your favorite color codes (hex, rgb, hsl, named CSS colors, etc.) for quick access.
-- **Name Your Colors:** Give any color a human-friendly name — in your saved colors and in each project. Add a name when saving, or rename later with the ✎ button.
+- **Name Your Colors:** Give any color a human-friendly name — in your saved colors and in each project. Add a name when saving, or edit it later with the ✏️ button.
 - **Project Palettes Stored in Your Repo:** Projects are saved as human-readable JSON in a `.colorstore/` folder at your workspace root (one file per project, e.g. `.colorstore/brand.json`), so you can **commit and share** them with your team. Personal colors live in `.colorstore/saved-colors.json`.
 - **Auto-Sync:** The sidebar refreshes automatically when the `.colorstore/` files change on disk (for example after a `git pull`).
 - **Scan Any File for Colors:** Color literals (hex, `rgb()/rgba()`, `hsl()/hsla()`, and CSS color names in CSS files) are recognized in your files. VS Code shows its native color swatch + picker, and a discreet inline label shows the palette name when a literal matches a **named** color of your current project.
 - **Quick Actions on Hover:** Hover a color literal to *Add it to the current project*, *Replace it with a project color*, *Replace it everywhere in the repo*, *Name / rename it*, or *Copy* it (plain / Tailwind / CSS).
-- **Replace a Color Everywhere:** Change a color's value from the sidebar (🔁 button) and apply it across the whole repo, search-and-replace style: every occurrence is found **whatever its format** (`#fff`, `#ffffff`, `rgb(255, 255, 255)`… all match), previewed with its file, line number and line of context, then replaced globally or occurrence by occurrence. Each replacement keeps the original notation (a `rgb()` occurrence stays `rgb()`), and the palette entry is updated too.
+- **Edit a Color in One Place:** The ✏️ button opens a small form to edit both the color's **name** and its **value** (text input + native color picker). A name change renames the palette entry; a value change triggers the repo-wide replacement below.
+- **Replace a Color Everywhere:** Change a color's value from the sidebar (✏️ button) and apply it across the whole repo, search-and-replace style: every occurrence is found **whatever its format** (`#fff`, `#ffffff`, `rgb(255, 255, 255)`… all match), previewed with its file, line number and line of context, then replaced globally or occurrence by occurrence. Each replacement keeps the original notation (a `rgb()` occurrence stays `rgb()`), and the palette entry is updated too.
 - **Copy Color Codes Instantly:** Copy colors in multiple formats:
   - Plain text (e.g., `#1A1A1A`, `rgb(0, 0, 0)`)
   - Tailwind CSS (`bg-[#1A1A1A]`, `text-[#1A1A1A]`, `text-[rgb(0,0,0)]`)
@@ -80,8 +81,8 @@
 
 ![Preview Color](https://raw.githubusercontent.com/binzam/vs-colorcode/main/media/gifs/preview-colors.gif)
 
-6. **Replace a Color Everywhere in the Repo:**  
-   Click the 🔁 button on any color, type its new value (hex, rgb, hsl… — press Enter), review the list of occurrences (file, line and 1-line context — the ↗ button jumps to the file), then press Enter to replace them all, or deselect the occurrences you want to keep first. The same action is available from the hover on any color literal (*Remplacer partout*) and from the Command Palette (**Replace a color everywhere in the repo**).
+6. **Edit a Color (name and/or value):**  
+   Click the ✏️ button on any color: edit its name, and/or its value (type it or use the color picker), then press Enter or ✓. A name change simply renames the entry. A value change starts the repo-wide replacement: review the list of occurrences (file, line and 1-line context — the ↗ button jumps to the file), then press Enter to replace them all, or deselect the occurrences you want to keep first. The same action is available from the hover on any color literal (*Remplacer partout*) and from the Command Palette (**Replace a color everywhere in the repo**).
 
 - **Remove Colors/Projects:**  
   Use the delete button (🗑️) to remove any color or project.

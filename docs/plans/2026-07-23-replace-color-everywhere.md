@@ -17,7 +17,7 @@ changement à l'ensemble du repo façon chercher/remplacer :
 | `src/replace/workspaceColorSearch.ts` | `findWorkspaceOccurrences(canonicalValue)` : `findFiles` avec exclusions (node_modules, .git, dist/out/build, lockfiles, minifiés, `.colorstore/`), pré-filtre disque léger (regex sur le contenu), passe d'autorité sur `TextDocument` pour les fichiers candidats + les documents ouverts *dirty*. Correspondance sémantique via la valeur canonique de `findColorLiterals`. |
 | `src/replace/replaceEverywhereCommand.ts` | Commande `color-store.replaceColorEverywhere({oldColor?, newColor?, from?})` : prompts natifs si args manquants, scan avec progression annulable, QuickPick multi-sélection (tout coché = remplacement global ; décocher = par occurrence ; bouton ↗ = ouvrir le fichier), `WorkspaceEdit` + sauvegarde des fichiers touchés, mise à jour de la palette. |
 | `ColorProjectManager.changeColorValue` | Met à jour la valeur d'une entrée en conservant son nom ; fusionne si la nouvelle valeur existe déjà dans la liste. |
-| Webview (`renderColorsList.js`) | Bouton 🔁 par couleur + barre d'édition (préremplie avec la valeur actuelle, Enter = lancer, Esc = annuler) → message `replaceColorEverywhere`. |
+| Webview (`renderColorsList.js`) | Bouton ✏️ par couleur ouvrant un formulaire unifié nom + valeur (saisie texte synchronisée avec un color picker natif ; Enter/✓ = appliquer, Esc = annuler). Nom modifié → message `renameColor` ; valeur modifiée → message `replaceColorEverywhere` ; les deux si les deux champs changent. |
 | Hover (`ColorHoverProvider`) | Lien *Remplacer partout* sur tout color literal (sans mise à jour de palette). |
 
 ## Points de design

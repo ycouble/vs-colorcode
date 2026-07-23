@@ -9,9 +9,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- **Remplacement d'une couleur dans tout le repo** : le bouton 🔁 sur une couleur (couleurs sauvegardées ou projet) permet de saisir sa nouvelle valeur, puis d'appliquer le changement façon chercher/remplacer : les occurrences sont détectées **quel que soit leur format** (`#fff`, `#ffffff`, `rgb(255, 255, 255)`… correspondent à la même couleur), prévisualisées dans une liste (fichier:ligne + ligne de contexte, bouton pour ouvrir le fichier à l'endroit exact), puis remplacées globalement ou occurrence par occurrence (en décochant celles à conserver). Chaque remplacement conserve la notation d'origine (une occurrence `rgb()` reste en `rgb()`, un hex majuscule reste majuscule) et l'entrée de palette est mise à jour (fusion si la nouvelle valeur existait déjà).
+- **Édition unifiée d'une couleur** : un seul bouton ✏️ par couleur ouvre un formulaire avec deux champs — le **nom** et la **valeur** (saisie texte + color picker natif synchronisés). Un changement de nom renomme l'entrée ; un changement de valeur déclenche le remplacement dans tout le repo (ci-dessous) ; les deux peuvent être modifiés en une fois.
+- **Remplacement d'une couleur dans tout le repo** : changer la valeur d'une couleur (couleurs sauvegardées ou projet) permet d'appliquer le changement façon chercher/remplacer : les occurrences sont détectées **quel que soit leur format** (`#fff`, `#ffffff`, `rgb(255, 255, 255)`… correspondent à la même couleur), prévisualisées dans une liste (fichier:ligne + ligne de contexte, bouton pour ouvrir le fichier à l'endroit exact), puis remplacées globalement ou occurrence par occurrence (en décochant celles à conserver). Chaque remplacement conserve la notation d'origine (une occurrence `rgb()` reste en `rgb()`, un hex majuscule reste majuscule) et l'entrée de palette est mise à jour (fusion si la nouvelle valeur existait déjà).
 - Nouvelle commande `Replace a color everywhere in the repo` (palette de commandes) et nouvelle action *Remplacer partout* au survol d'un color literal.
 - Le scan de remplacement ignore `node_modules`, `.git`, `dist`/`out`/`build`, les lockfiles, les fichiers minifiés, les binaires, les fichiers > 1 Mo et le dossier `.colorstore/` ; il prend en compte les modifications non sauvegardées des éditeurs ouverts et sauvegarde les fichiers modifiés.
+
+### Changed
+
+- **Boutons d'action des couleurs** : taille et alignement uniformes (les icônes n'étaient plus alignées), et fonds normalisés — copier 📋 et preview 🎨 sur fond blanc, éditer ✏️ sur fond bleu, supprimer 🗑️ sur fond rouge. L'icône de preview passe de 👁️ à 🎨.
+- Le bouton ✎ (renommer) est remplacé par le formulaire unifié du bouton ✏️ (nom + valeur).
 
 ## [Unreleased] - 2026-07-17
 
