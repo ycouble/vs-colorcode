@@ -1,5 +1,6 @@
 import * as vscode from 'vscode';
 import { ColorProjectManager } from './ColorProjectManager';
+import { CMD_REPLACE_EVERYWHERE } from '../replace/replaceEverywhereCommand';
 
 export class ColorPickerViewProvider implements vscode.WebviewViewProvider {
   private _view?: vscode.WebviewView;
@@ -95,6 +96,13 @@ export class ColorPickerViewProvider implements vscode.WebviewViewProvider {
               removeResult.message || 'Failed to remove color.'
             );
           }
+          break;
+        case 'replaceColorEverywhere':
+          vscode.commands.executeCommand(CMD_REPLACE_EVERYWHERE, {
+            oldColor: message.color,
+            newColor: message.newColor,
+            from: message.from,
+          });
           break;
         case 'copy':
           vscode.env.clipboard.writeText(message.text);

@@ -33,7 +33,8 @@
 - **Project Palettes Stored in Your Repo:** Projects are saved as human-readable JSON in a `.colorstore/` folder at your workspace root (one file per project, e.g. `.colorstore/brand.json`), so you can **commit and share** them with your team. Personal colors live in `.colorstore/saved-colors.json`.
 - **Auto-Sync:** The sidebar refreshes automatically when the `.colorstore/` files change on disk (for example after a `git pull`).
 - **Scan Any File for Colors:** Color literals (hex, `rgb()/rgba()`, `hsl()/hsla()`, and CSS color names in CSS files) are recognized in your files. VS Code shows its native color swatch + picker, and a discreet inline label shows the palette name when a literal matches a **named** color of your current project.
-- **Quick Actions on Hover:** Hover a color literal to *Add it to the current project*, *Replace it with a project color*, *Name / rename it*, or *Copy* it (plain / Tailwind / CSS).
+- **Quick Actions on Hover:** Hover a color literal to *Add it to the current project*, *Replace it with a project color*, *Replace it everywhere in the repo*, *Name / rename it*, or *Copy* it (plain / Tailwind / CSS).
+- **Replace a Color Everywhere:** Change a color's value from the sidebar (🔁 button) and apply it across the whole repo, search-and-replace style: every occurrence is found **whatever its format** (`#fff`, `#ffffff`, `rgb(255, 255, 255)`… all match), previewed with its file, line number and line of context, then replaced globally or occurrence by occurrence. Each replacement keeps the original notation (a `rgb()` occurrence stays `rgb()`), and the palette entry is updated too.
 - **Copy Color Codes Instantly:** Copy colors in multiple formats:
   - Plain text (e.g., `#1A1A1A`, `rgb(0, 0, 0)`)
   - Tailwind CSS (`bg-[#1A1A1A]`, `text-[#1A1A1A]`, `text-[rgb(0,0,0)]`)
@@ -79,6 +80,9 @@
 
 ![Preview Color](https://raw.githubusercontent.com/binzam/vs-colorcode/main/media/gifs/preview-colors.gif)
 
+6. **Replace a Color Everywhere in the Repo:**  
+   Click the 🔁 button on any color, type its new value (hex, rgb, hsl… — press Enter), review the list of occurrences (file, line and 1-line context — the ↗ button jumps to the file), then press Enter to replace them all, or deselect the occurrences you want to keep first. The same action is available from the hover on any color literal (*Remplacer partout*) and from the Command Palette (**Replace a color everywhere in the repo**).
+
 - **Remove Colors/Projects:**  
   Use the delete button (🗑️) to remove any color or project.
   ![Remove Color](https://raw.githubusercontent.com/binzam/vs-colorcode/main/media/gifs/remove.gif)
@@ -112,7 +116,9 @@ Commit these files to share palettes with your team. If you'd rather keep your p
 | `color-store.scan.languages` | `[]` (all files) | Optional allow-list of language ids to scan. Empty means every file; add ids (e.g. `css`, `typescript`) to restrict. |
 | `color-store.scan.matchNamedCssColors` | `true` | Also recognize CSS color names (`red`, `gold`…), limited to CSS-family languages to avoid false positives. |
 
-Commands: **Scan active editor for colors** and **Toggle color scanning** are available from the Command Palette.
+Commands: **Scan active editor for colors**, **Toggle color scanning** and **Replace a color everywhere in the repo** are available from the Command Palette.
+
+> Note: repo-wide color replacement is an explicit action, so it scans every text file regardless of `scan.enabled` / `scan.languages` (only `matchNamedCssColors` still applies, per language). `node_modules`, `.git`, build outputs, lockfiles, minified files and the `.colorstore/` folder are excluded.
 
 ---
 

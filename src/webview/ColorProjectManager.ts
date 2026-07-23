@@ -173,6 +173,50 @@ export class ColorProjectManager {
     return { success: true, message: `${value} renamed.` };
   }
 
+  /**
+   * Change the value of a stored color (keeps its name). If the new value
+   * already exists in the same list, the two entries are merged.
+   */
+  public async changeColorValue(
+    oldValue: string,
+    newValue: string,
+    from: ColorScope = 'saved'
+  ): Promise<{ success: boolean; message?: string; color?: string }> {
+    const { isValid, acceptableColor } = isValidColor(newValue);
+    if (!isValid || !acceptableColor) {
+      return { success: false, message: 'Invalid color format.' };
+    }
+    const list = this.targetList(from);
+    if (!list) {
+      return {
+        success: false,
+        message: 'No active project. Create or select one first.',
+      };
+    }
+    const index = list.findIndex((c) => c.value === oldValue);
+    if (index === -1) {
+      return { success: false, message: 'Color not found.' };
+    }
+    if (acceptableColor === oldValue) {
+      return { success: true, color: acceptableColor };
+    }
+    const existing = list.find((c) => c.value === acceptableColor);
+    if (existing) {
+      if (!existing.name && list[index].name) {
+        existing.name = list[index].name;
+      }
+      list.splice(index, 1);
+    } else {
+      list[index] = { ...list[index], value: acceptableColor };
+    }
+    await this.saveData();
+    return {
+      success: true,
+      color: acceptableColor,
+      message: `${oldValue} → ${acceptableColor}.`,
+    };
+  }
+
   public async createProject(name: string): Promise<boolean> {
     if (!name || name.trim() === '') {
       return false;

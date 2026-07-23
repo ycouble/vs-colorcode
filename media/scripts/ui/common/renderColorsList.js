@@ -6,6 +6,7 @@ export function renderColorsList(container, colors, type) {
           const name = color.name || '';
           const id = `copy-options-${type}-${index}`;
           const renameId = `rename-${type}-${index}`;
+          const editValueId = `edit-value-${type}-${index}`;
           const nameLabel = name
             ? `<span class="color-name">${escapeHtml(name)}</span>`
             : '';
@@ -24,11 +25,15 @@ export function renderColorsList(container, colors, type) {
               <button class="copy-option" data-format="css-bg">background-color: ${value};</button>
             </div>
             <button class="rename-btn" title="Name / rename" data-rename-id="${renameId}">✎</button>
+            <button class="edit-value-btn" title="Change color everywhere in the repo" data-edit-id="${editValueId}">🔁</button>
   <button class="preview-btn" title="Preview" data-color="${value}">👁️</button>
             <button class="remove-btn" data-color="${value}" data-type="${type}">🗑️</button>
           </div>
           <div id="${renameId}" class="rename-bar">
             <input class="rename-input" type="text" value="${escapeAttr(name)}" placeholder="Color name" data-color="${value}" data-type="${type}" />
+          </div>
+          <div id="${editValueId}" class="rename-bar edit-value-bar">
+            <input class="rename-input edit-value-input" type="text" value="${escapeAttr(value)}" placeholder="New color (hex, rgb, hsl…)" title="Enter: preview & replace every occurrence in the repo" data-color="${value}" data-type="${type}" />
           </div>
         </div>`;
         })
@@ -106,7 +111,47 @@ function setupColorActions(container) {
     });
   });
 
-  container.querySelectorAll('.rename-input').forEach((field) => {
+  container.querySelectorAll('.edit-value-btn').forEach((btn) => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const bar = document.getElementById(btn.dataset.editId);
+      const isVisible = bar.style.display === 'flex';
+      document
+        .querySelectorAll('.rename-bar')
+        .forEach((el) => (el.style.display = 'none'));
+      bar.style.display = isVisible ? 'none' : 'flex';
+      if (!isVisible) {
+        const field = bar.querySelector('.edit-value-input');
+        field.focus();
+        field.select();
+      }
+    });
+  });
+
+  container.querySelectorAll('.edit-value-input').forEach((field) => {
+    const commit = () => {
+      const newColor = field.value.trim();
+      if (newColor && newColor !== field.dataset.color) {
+        vscode.postMessage({
+          command: 'replaceColorEverywhere',
+          color: field.dataset.color,
+          newColor,
+          from: field.dataset.type,
+        });
+      }
+      field.closest('.rename-bar').style.display = 'none';
+    };
+    field.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        commit();
+      } else if (e.key === 'Escape') {
+        field.closest('.rename-bar').style.display = 'none';
+      }
+    });
+    field.addEventListener('click', (e) => e.stopPropagation());
+  });
+
+  container.querySelectorAll('.rename-input:not(.edit-value-input)').forEach((field) => {
     const commit = () => {
       vscode.postMessage({
         command: 'renameColor',

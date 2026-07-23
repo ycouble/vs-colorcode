@@ -5,6 +5,14 @@ All notable changes to the **Color Store** extension will be documented in this 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),  
 and this project adheres to [Semantic Versioning](https://semver.org/).
 
+## 2026-07-23
+
+### Added
+
+- **Remplacement d'une couleur dans tout le repo** : le bouton 🔁 sur une couleur (couleurs sauvegardées ou projet) permet de saisir sa nouvelle valeur, puis d'appliquer le changement façon chercher/remplacer : les occurrences sont détectées **quel que soit leur format** (`#fff`, `#ffffff`, `rgb(255, 255, 255)`… correspondent à la même couleur), prévisualisées dans une liste (fichier:ligne + ligne de contexte, bouton pour ouvrir le fichier à l'endroit exact), puis remplacées globalement ou occurrence par occurrence (en décochant celles à conserver). Chaque remplacement conserve la notation d'origine (une occurrence `rgb()` reste en `rgb()`, un hex majuscule reste majuscule) et l'entrée de palette est mise à jour (fusion si la nouvelle valeur existait déjà).
+- Nouvelle commande `Replace a color everywhere in the repo` (palette de commandes) et nouvelle action *Remplacer partout* au survol d'un color literal.
+- Le scan de remplacement ignore `node_modules`, `.git`, `dist`/`out`/`build`, les lockfiles, les fichiers minifiés, les binaires, les fichiers > 1 Mo et le dossier `.colorstore/` ; il prend en compte les modifications non sauvegardées des éditeurs ouverts et sauvegarde les fichiers modifiés.
+
 ## [Unreleased] - 2026-07-17
 
 ### Added

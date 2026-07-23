@@ -8,6 +8,7 @@ import { ColorProvider } from './scanner/ColorProvider';
 import { ColorDecorator } from './scanner/ColorDecorator';
 import { ColorHoverProvider } from './scanner/ColorHoverProvider';
 import { registerLiteralCommands } from './scanner/literalActions';
+import { registerReplaceEverywhere } from './replace/replaceEverywhereCommand';
 
 export function activate(context: vscode.ExtensionContext) {
   const fs = new ColorStoreFs();
@@ -60,6 +61,7 @@ export function activate(context: vscode.ExtensionContext) {
   context.subscriptions.push(decorator);
 
   registerLiteralCommands(context, manager);
+  registerReplaceEverywhere(context, manager);
 
   // Utility commands.
   context.subscriptions.push(

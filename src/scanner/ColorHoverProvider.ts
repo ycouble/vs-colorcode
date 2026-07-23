@@ -9,6 +9,7 @@ import {
   CMD_REPLACE_LITERAL,
   LiteralRef,
 } from './literalActions';
+import { CMD_REPLACE_EVERYWHERE } from '../replace/replaceEverywhereCommand';
 
 /**
  * On hover over a color literal, shows the palette name (if matched) and the
@@ -66,6 +67,9 @@ export class ColorHoverProvider implements vscode.HoverProvider {
       `[$(add) Ajouter au projet](command:${CMD_ADD_LITERAL}?${arg()} "Ajouter à ${projectLabel}")`,
       `[$(color-mode) Remplacer](command:${CMD_REPLACE_LITERAL}?${arg()} "Remplacer par une couleur du projet")`,
       `[$(edit) Nommer](command:${CMD_NAME_LITERAL}?${arg()} "Nommer / renommer cette couleur")`,
+      `[$(replace-all) Remplacer partout](command:${CMD_REPLACE_EVERYWHERE}?${encodeURIComponent(
+        JSON.stringify({ oldColor: hit.value })
+      )} "Remplacer cette couleur dans tout le repo")`,
       `[$(copy) Copier](command:${CMD_COPY_LITERAL}?${arg()} "Copier")`,
     ];
     md.appendMarkdown(links.join(' &nbsp; '));

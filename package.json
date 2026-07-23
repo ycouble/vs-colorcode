@@ -161,6 +161,11 @@
         "category": "Color Store"
       },
       {
+        "command": "color-store.replaceColorEverywhere",
+        "title": "Replace a color everywhere in the repo",
+        "category": "Color Store"
+      },
+      {
         "command": "color-store.scanActiveEditor",
         "title": "Scan active editor for colors",
         "category": "Color Store"
