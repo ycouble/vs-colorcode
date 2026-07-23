@@ -16,7 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
-- **Boutons d'action des couleurs** : taille et alignement uniformes (les icônes n'étaient plus alignées), et fonds normalisés — copier 📋 et preview 🎨 sur fond blanc, éditer ✏️ sur fond bleu, supprimer 🗑️ sur fond rouge. L'icône de preview passe de 👁️ à 🎨.
+- **Boutons d'action des couleurs** : taille et alignement uniformes (les icônes n'étaient plus alignées), boutons plus compacts (22 px) flottant sur un conteneur devenu transparent, sur fond blanc avec contour slategray et ombre légère — contour bleu pour éditer ✏️, rouge pour supprimer 🗑️. L'icône de preview passe de 👁️ à 🎨.
 - Le bouton ✎ (renommer) est remplacé par le formulaire unifié du bouton ✏️ (nom + valeur).
 
 ## [Unreleased] - 2026-07-17

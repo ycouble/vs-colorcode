@@ -117,20 +117,6 @@ input.color-input:focus {
   background-color: #007acc;
 }
 
-.copy-btn {
-  background-color: #ffffff;
-  color: #1e1e1e;
-}
-.copy-btn:hover {
-  background-color: #d6d6d6;
-}
-.preview-btn {
-  background-color: #ffffff;
-  color: #1e1e1e;
-}
-.preview-btn:hover {
-  background-color: #d6d6d6;
-}
 
 .project-modal {
   display: none;
@@ -211,28 +197,32 @@ input.color-input:focus {
   display: flex;
   align-items: center;
   margin-left: auto;
-  gap: 5px;
-  padding: 3px 8px;
-  background-color: rgba(255, 255, 255, 0.65);
-  border-radius: 10px;
-  box-shadow: 0px 2px 2px #333;
+  gap: 4px;
+  padding: 0;
+  background: none;
 }
 
 /* One size for every action button so the row stays aligned. */
 .color-actions > button {
-  width: 26px;
-  height: 26px;
+  width: 22px;
+  height: 22px;
   padding: 0;
   margin: 0;
-  border: none;
+  background-color: #ffffff;
+  color: #1e1e1e;
+  border: 1px solid slategray;
   border-radius: 4px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1;
   cursor: pointer;
   opacity: 1;
+}
+.color-actions > button:hover {
+  background-color: #e8e8e8;
 }
 
 .copy-options {
@@ -342,19 +332,17 @@ input.color-input:focus {
   opacity: 0.7;
   margin-left: auto;
 }
-.remove-btn {
-  background-color: #d32f2f;
-  color: #fff;
+.color-actions > .remove-btn {
+  border-color: #d32f2f;
   margin: 0;
-  opacity: 1;
 }
 .delete-project-btn:hover {
   background-color: var(--vscode-list-activeSelectionBackground);
   color: var(--vscode-errorForeground);
   opacity: 1;
 }
-.remove-btn:hover {
-  background-color: #b71c1c;
+.color-actions > .remove-btn:hover {
+  background-color: #fdecea;
 }
 
 .delete-project-btn svg {
@@ -417,12 +405,10 @@ input.color-input:focus {
   }
   .color-actions {
     gap: 3px;
-    padding: 2px 5px;
-    border-radius: 5px;
   }
   .color-actions > button {
-    width: 22px;
-    height: 22px;
+    width: 20px;
+    height: 20px;
     font-size: 11px;
   }
   .copy-options {
@@ -466,12 +452,11 @@ input.color-name-input:focus {
   border-radius: 5px;
   box-shadow: 0px 2px 2px #333;
 }
-.edit-btn {
-  background-color: #005fa3;
-  color: #fff;
+.color-actions > .edit-btn {
+  border-color: #005fa3;
 }
-.edit-btn:hover {
-  background-color: #007acc;
+.color-actions > .edit-btn:hover {
+  background-color: #e3f1fb;
 }
 .edit-bar {
   display: none;
